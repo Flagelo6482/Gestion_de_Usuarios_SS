@@ -4,9 +4,11 @@ import com.example.GestionDeUsuarios.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -39,7 +41,8 @@ public class SecurityConfig {
         return http
                 .csrf(customizer -> customizer.disable())   //Desactivamos la seguridad CSRF
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/createUser", "/allUsers").permitAll()
+                        .requestMatchers("/login", "/createUser")
+                        .permitAll()
                         .anyRequest().authenticated())  //Indicamos que todas las rutas no especificadas necesitan ser autenticadas
                 .httpBasic(Customizer.withDefaults())   //Método para manejar datos desde el POSTMAN
                 .build();
@@ -56,8 +59,43 @@ public class SecurityConfig {
     public AuthenticationProvider authenticationProvider(){
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
 //        provider.setPasswordEncoder(NoOpPasswordEncoder.getInstance()); // Configura el codificador de contraseñas
-        provider.setPasswordEncoder(passwordEncoder());
-        provider.setUserDetailsService(userDetailsService);   // Establece el servicio para obtener usuarios
+        provider.setPasswordEncoder(passwordEncoder()); // Usa BCrypt para validar la contraseña
+        provider.setUserDetailsService(userDetailsService);   // Establece el servicio para obtener usuarios, Obtiene los usuarios desde la BD
         return provider;
     }
+
+    /*
+    * Encargado de recibir una solicitud de AUTENTICACIÓN y DISTRIBUIRLA en diferentes "AuthenticationProvider"
+    * disponibles hasta encontrar uno que lo pueda manejar
+    * Es el encargado de delegar la autenticación a los AuthenticationProvider registrados.
+    * -Este método obtiene un AuthenticationManager preconfigurado desde AuthenticationConfiguration.
+    * -AuthenticationConfiguration: Se encarga de autoconfigurar el AuthenticationManager, incluyendo todos los AuthenticationProvider disponibles en el contexto de Spring
+    * */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

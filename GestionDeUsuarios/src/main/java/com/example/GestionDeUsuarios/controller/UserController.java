@@ -34,4 +34,15 @@ public class UserController {
     public CsrfToken getCsrfToken(HttpServletRequest request){
         return (CsrfToken) request.getAttribute("_csrf");
     }
+
+
+    /*
+    * Método para iniciar sesión con las credenciales que tenemos en base de datos
+    * @RequestBody: Verifica el JSON que le pasamos con los datos(no las credenciales)
+    * */
+    @PostMapping("/login")
+    public String login(@RequestBody UserImpl user){
+        //Agregaremos un metodo para verificar si el usuario que esta iniciando sesión existe o no
+        return userService.verify(user);
+    }
 }
