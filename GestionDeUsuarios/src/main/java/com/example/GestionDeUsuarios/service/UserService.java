@@ -53,7 +53,7 @@ public class UserService {
 
     //Creación de un usuario
     public UserImpl addUser(UserImpl user){
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));   //Desencriptamos la contraseña
         return userRepository.save(user);
     }
 
