@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +32,10 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    @Autowired
+    private JwtFilter jwtFilter;
+
 
     //Llamamos a nuestra clase personalizada que implementa UserDetailsService para buscar los datos en la base de datos
     @Autowired
@@ -45,6 +50,11 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest().authenticated())  //Indicamos que todas las rutas no especificadas necesitan ser autenticadas
                 .httpBasic(Customizer.withDefaults())   //Método para manejar datos desde el POSTMAN
+                /*
+                * jwtFilter: filtro que se encargará de interceptar cada solicitud HTTP para validar el token JWT.
+                * UsernamePasswordAuthenticationFilter.class: Es el filtro predeterminado de Spring Security que maneja la autenticación con nombre de usuario y contraseña.
+                * */
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)     //Filtro personalizado
                 .build();
     }
 

@@ -27,19 +27,27 @@ public class UserService {
     * */
 //    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-
-
+    /*
+    * private: Hace que la variable solo sea accesible dentro de la clase(UserService)
+    * final: Garantiza que la referencia a JWTService no cambiará después de la inyección.
+    * */
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JWTService jwtService;
 
     /*
     * Agregamos el constructor, este constructor inyecta el UserRepository y PasswordEncoder como dependencias(como si fuera inyección dependencias)
     * */
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager){
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       AuthenticationManager authenticationManager,
+                       JWTService jwtService){
+
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
 
@@ -70,7 +78,8 @@ public class UserService {
         //Ya teniendo las credenciales vamos a autenticarlas con el método "isAuthenticated"
         if(authentication.isAuthenticated())
             //AQUI TENEMOS QUE DEVOLVER EL TOKEN JWT >:D
-            return "Autenticado con exito!";
+            return jwtService.generateToken(user.getUsername());
+//            return "Autenticado con exito!";
 
         return "Autenticación fallida";
     }
