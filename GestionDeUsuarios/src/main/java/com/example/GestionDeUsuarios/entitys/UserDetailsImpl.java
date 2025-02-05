@@ -31,6 +31,10 @@ public class UserDetailsImpl implements UserDetails {
         return user.getPassword();
     }
 
+    public String getEmail() {   // 🔹 Getter agregado para obtener el email
+        return user.getEmail();
+    }
+
     @Override
     public String getUsername() {
         return user.getUsername();

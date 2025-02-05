@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" xmlns:th="http://www.thymeleaf.org">
+    <title>Login</title>
+    <script>
+        async function login(event) {
+            event.preventDefault(); // Evita recargar la página
+
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+
+            // Enviamos la solicitud al backend
+            let response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (response.ok) {
+                let token = await response.text(); // JWT retornado por el backend
+                localStorage.setItem("jwtToken", token); // Guardar el token en el navegador
+                window.location.href = "/home"; // Redirigir a la página protegida
+            } else {
+                alert("Usuario o contraseña incorrectos");
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <h2>Iniciar sesión</h2>
+
+    <form onsubmit="login(event)">
+        <label for="username">Usuario: </label>
+        <input type="text" id="username" required>
+
+        <label for="password">Contraseña: </label>
+        <input type="password" id="password" required>
+
+        <button type="submit">Iniciar sesión</button>
+    </form>
+</body>
+</html>
