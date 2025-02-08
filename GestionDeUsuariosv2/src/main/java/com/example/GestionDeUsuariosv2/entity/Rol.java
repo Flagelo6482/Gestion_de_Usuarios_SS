@@ -1,12 +1,8 @@
 package com.example.GestionDeUsuariosv2.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
 
 @Entity
-@Getter
-@Setter
 @Table(name = "rol")
 public class Rol {
 
@@ -17,4 +13,20 @@ public class Rol {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private RolName name;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public RolName getName() {
+        return name;
+    }
+
+    public void setName(RolName name) {
+        this.name = name;
+    }
 }

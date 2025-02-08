@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 * para agregar el método "loadUserByUsername" ya que con este método obtendremos los datos que necesitamos validar
 * */
 @Service
-public class UserDetailsServiceImpl implements UserDetailsService {
+    public class UserDetailsServiceImpl implements UserDetailsService {
 
     //Llamamos al repositorio para hacer uso del método que encuentra según el nombre de usuario
     @Autowired

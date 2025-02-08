@@ -1,6 +1,7 @@
 package com.example.GestionDeUsuariosv2.service;
 
 import com.example.GestionDeUsuariosv2.entity.Rol;
+import com.example.GestionDeUsuariosv2.entity.RolName;
 import com.example.GestionDeUsuariosv2.reposistory.RolRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,8 @@ public class RolService {
 
     //Buscar rol por ID
     public Optional<Rol> obtenerRolPorNombre(String name){
-        return rolRepository.findByName(name);
+        RolName rolName = RolName.valueOf(name);
+        return rolRepository.findByName(rolName);
     }
 
     //Listar todos los roles
