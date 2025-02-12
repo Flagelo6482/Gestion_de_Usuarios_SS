@@ -1,11 +1,20 @@
 package com.example.GestionDeUsuariosv2.service;
 
+import com.example.GestionDeUsuariosv2.config.JWTService;
+import com.example.GestionDeUsuariosv2.dto.AuthResponse;
 import com.example.GestionDeUsuariosv2.entity.Rol;
 import com.example.GestionDeUsuariosv2.entity.RolName;
 import com.example.GestionDeUsuariosv2.entity.UserImpl;
 import com.example.GestionDeUsuariosv2.reposistory.RolRepository;
 import com.example.GestionDeUsuariosv2.reposistory.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -22,6 +31,12 @@ public class UserService {
     private RolRepository rolRepository;  // 🔥 Inyección de RolService
     @Autowired
     private RolService rolService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private AuthenticationManager manager;
+    @Autowired
+    private JWTService jwtService;
 
     /*
     * Método para buscar un usuario por el "email"
@@ -44,6 +59,15 @@ public class UserService {
 
     //Crear un usuario
     public UserImpl crearUnUsuario(UserImpl user){
+
+        /*
+        * Aseguramos que la colección de roles este inicializada, en caso venga como null el valor de los roles
+        * inicializamos en el constructor de la entidad o dentro del método
+        * */
+        if(user.getRoles() == null){
+            user.setRoles(new HashSet<>());
+        }
+
         /*
         * Verificamos si se enviaron los roles en el request/solocitud
         * Que no este vacio y que sea falso al llamar "isEmpty"
@@ -71,6 +95,7 @@ public class UserService {
             user.getRoles().add(defaultRole);
         }
 
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -102,5 +127,19 @@ public class UserService {
         // 🔥 Agregar el rol al Set de roles
         user.getRoles().add(rol);
         return userRepository.save(user);
+    }
+
+    public ResponseEntity<?> verify(UserImpl user) {
+        try {
+            //Autenticamos las credenciales
+            Authentication authentication = manager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+            //Si la autenticación es exitosa generamos el token JWT
+            String token = jwtService.generateToken(user.getUsername());
+            //Retornamos la respuesta con el token
+            return ResponseEntity.ok(new AuthResponse(token));
+        } catch (AuthenticationException ex){
+            //Si falla la autenticación retornamos un error 401
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales invalidas oe");
+        }
     }
 }

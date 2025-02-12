@@ -52,4 +52,10 @@ public class UserController {
         userService.eliminarUsuario(id);
         return ResponseEntity.noContent().build();
     }
+
+    //Método para iniciar sesión en el proyecto
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserImpl user){
+        return userService.verify(user);
+    }
 }
