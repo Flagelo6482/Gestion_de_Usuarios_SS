@@ -1,6 +1,5 @@
 package com.example.GestionDeUsuariosv2.service;
 
-import com.example.GestionDeUsuariosv2.config.JWTService;
 import com.example.GestionDeUsuariosv2.dto.AuthResponse;
 import com.example.GestionDeUsuariosv2.entity.Rol;
 import com.example.GestionDeUsuariosv2.entity.RolName;

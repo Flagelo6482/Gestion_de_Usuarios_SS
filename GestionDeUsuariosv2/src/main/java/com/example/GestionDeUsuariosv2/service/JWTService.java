@@ -1,4 +1,4 @@
-package com.example.GestionDeUsuariosv2.config;
+package com.example.GestionDeUsuariosv2.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

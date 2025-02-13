@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 /*
@@ -26,6 +27,10 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
+    //Llamamos al filtro del token JWT
+    @Autowired
+    private JwtFilter jwtFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
@@ -34,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/login").permitAll()
                         .anyRequest().authenticated())   //Todas las rutas se ingresan con autenticación
                 .httpBasic(Customizer.withDefaults())   //Habilitamos las solicitudes HTTP para enviar las credenciales por POSTMAN
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
