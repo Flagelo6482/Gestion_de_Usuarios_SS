@@ -34,7 +34,7 @@ public class UserController {
     }
 
     //Crear un nuevo usuario - METODO YA PROBADO EXITOSO!
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<UserImpl> crearUsuario(@RequestBody UserImpl user){
         UserImpl nuevoUsuario = userService.crearUnUsuario(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);

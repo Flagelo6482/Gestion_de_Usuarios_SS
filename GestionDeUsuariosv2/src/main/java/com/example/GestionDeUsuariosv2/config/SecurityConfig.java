@@ -36,7 +36,9 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())    //Desactivamos la seguridad CSRF al trabajar con APIs(como POSTMAN)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/usuarios/login").permitAll()
+                        .requestMatchers("/api/usuarios/login").permitAll()                        //Ruta para iniciar sesión, publica
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")                         //Rutas para usuarios con el rol ADMIN
+                        .requestMatchers("/api/usuarios/**").hasAnyRole("USER", "ADMIN")    //Rutas para usuarios ADMIN y USER
                         .anyRequest().authenticated())   //Todas las rutas se ingresan con autenticación
                 .httpBasic(Customizer.withDefaults())   //Habilitamos las solicitudes HTTP para enviar las credenciales por POSTMAN
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
