@@ -21,6 +21,11 @@ public class UserDetailsImpl implements UserDetails {
         this.user = user;
     }
 
+    public UserImpl getUser() {
+        return user;
+    }
+
+
     //Método para obtener los roles de un USUARIO
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /*
 * Clase encargada de obtener las credencialesde un usuario de la base de datos, para esto se implementa "UserDetails"
@@ -24,6 +25,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     //Método encargado de buscar y cargar los detalles de un usuario y al implementarlo con una instancia de UserDetails
     //Spring Security lo utiliza para manejar la información del usuario
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         //Usamos el método del repositorio para buscar el nombre

@@ -11,7 +11,6 @@ public class Rol {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
     private RolName name;
 
     public Long getId() {

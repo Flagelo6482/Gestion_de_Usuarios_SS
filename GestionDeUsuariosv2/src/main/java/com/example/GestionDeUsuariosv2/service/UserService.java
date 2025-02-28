@@ -3,6 +3,7 @@ package com.example.GestionDeUsuariosv2.service;
 import com.example.GestionDeUsuariosv2.dto.AuthResponse;
 import com.example.GestionDeUsuariosv2.entity.Rol;
 import com.example.GestionDeUsuariosv2.entity.RolName;
+import com.example.GestionDeUsuariosv2.entity.UserDetailsImpl;
 import com.example.GestionDeUsuariosv2.entity.UserImpl;
 import com.example.GestionDeUsuariosv2.reposistory.RolRepository;
 import com.example.GestionDeUsuariosv2.reposistory.UserRepository;
@@ -50,8 +51,12 @@ public class UserService {
     public UserImpl actualizarUsuario(Long id, UserImpl userUpdated){
         return userRepository.findById(id).map(user -> {
             user.setUsername(userUpdated.getUsername());
-            user.setPassword(userUpdated.getPassword());
             user.setEmail(userUpdated.getEmail());
+
+            //Verificamos si la nueva contraseña es diferente antes de encriptarla
+            if (!userUpdated.getPassword().equals(user.getPassword())) {
+                user.setPassword(passwordEncoder.encode(userUpdated.getPassword()));
+            }
             return userRepository.save(user); // ✅ Esto actualiza el usuario correctamente
         }).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
@@ -110,6 +115,9 @@ public class UserService {
 
     //Eliminar un usuario por ID
     public void eliminarUsuario(Long id){
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("Usuario con id:"+id+" no existe.");
+        }
         userRepository.deleteById(id);
     }
 
@@ -119,26 +127,12 @@ public class UserService {
     }
 
     //✅ Método para crear un usuario y asignarle un rol
-    public UserImpl crearUsuarioConRol(UserImpl user, String nombreDeRol){
-        Rol rol = rolService.obtenerRolPorNombre(nombreDeRol)
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado D:"));
-
-        // 🔥 Agregar el rol al Set de roles
-        user.getRoles().add(rol);
-        return userRepository.save(user);
-    }
-
-    public ResponseEntity<?> verify(UserImpl user) {
-        try {
-            //Autenticamos las credenciales
-            Authentication authentication = manager.authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-            //Si la autenticación es exitosa generamos el token JWT
-            String token = jwtService.generateToken(user.getUsername());
-            //Retornamos la respuesta con el token
-            return ResponseEntity.ok(new AuthResponse(token));
-        } catch (AuthenticationException ex){
-            //Si falla la autenticación retornamos un error 401
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales invalidas oe");
-        }
-    }
+//    public UserImpl crearUsuarioConRol(UserImpl user, String nombreDeRol){
+//        Rol rol = rolService.obtenerRolPorNombre(nombreDeRol)
+//                .orElseThrow(() -> new RuntimeException("Rol no encontrado D:"));
+//
+//        // 🔥 Agregar el rol al Set de roles
+//        user.getRoles().add(rol);
+//        return userRepository.save(user);
+//    }
 }

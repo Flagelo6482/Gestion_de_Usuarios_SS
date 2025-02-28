@@ -39,6 +39,12 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+        // Ignorar la verificación del token en la ruta de login
+        if (request.getServletPath().equals("/auth/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         //Extraemos el header Authorization
         final String autHeader = request.getHeader("Authorization");
         String token = null;
@@ -51,11 +57,20 @@ public class JwtFilter extends OncePerRequestFilter {
                 username = service.extractUserName(token);  //Extraemos el usuario del token
             } catch (Exception e){
                 logger.error("Error al extraer el username del token :"+e.getMessage());
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido o mal formado");
+                return; // Detiene la ejecución del filtro para evitar continuar con la solicitud
             }
         }
 
         //Si se obtuvo el username y el contexto aun no tiene autenticación(si es la primera vez que se autentica el usuario)
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            if (service.isTokenExpired(token)) {
+                logger.error("Token expirado para el usuario: "+username);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado. Por favor inicie sesión nuevamente.");
+                return; // Detenemos la ejecución
+            }
+
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);  //Buscamos al usuario en la base de datos
 
             if (service.validateToken(token, userDetails)) {

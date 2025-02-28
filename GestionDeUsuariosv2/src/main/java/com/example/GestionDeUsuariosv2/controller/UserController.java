@@ -6,14 +6,16 @@ import com.example.GestionDeUsuariosv2.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RestController
-@RequestMapping("/api/usuarios")    //Prefijo de las rutas
+@RequestMapping("/usuarios")    //Prefijo de las rutas
 public class UserController {
 
     @Autowired
@@ -54,8 +56,24 @@ public class UserController {
     }
 
     //Método para iniciar sesión en el proyecto
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserImpl user){
-        return userService.verify(user);
+//    @PostMapping("/auth")
+//    public ResponseEntity<?> login(@RequestBody UserImpl user){
+//        return userService.verify(user);
+//    }
+
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getUserInfo(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No autorizado");
+        }
+
+        Optional<UserImpl> user = userService.obtenerUsuerioPorEmail(authentication.getName());
+
+        if (user.isPresent()) {
+            return ResponseEntity.ok(user.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario no encontrado");
+        }
     }
 }
