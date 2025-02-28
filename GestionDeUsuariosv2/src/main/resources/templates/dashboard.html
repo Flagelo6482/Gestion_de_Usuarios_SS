@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        .container {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+        button {
+            padding: 10px;
+            margin-top: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Bienvenido al Dashboard</h2>
+        <p>Esta es una página privada. Solo puedes verla si iniciaste sesión.</p>
+        <button id="logout">Cerrar Sesión</button>
+    </div>
+
+    <script>
+        // Verificar si hay un token en localStorage
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            // Si no hay token, redirigir al login
+            window.location.href = "/login";
+        }
+
+        // Botón para cerrar sesión
+        document.getElementById("logout").addEventListener("click", () => {
+            localStorage.removeItem("token"); // Elimina el token
+            window.location.href = "/"; // Redirige a la página pública
+        });
+    </script>
+</body>
+</html>

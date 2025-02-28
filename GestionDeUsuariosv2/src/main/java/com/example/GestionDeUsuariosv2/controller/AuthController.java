@@ -26,7 +26,7 @@ public class AuthController {
     private AuthService service;
 
     //ENDPOINT 1: Método que valida credenciales de un usuario y en caso que sea exitoso retorne un token JWT
-    @PostMapping("/iniciar")
+    @PostMapping("/login")
     public ResponseEntity<?> iniciarSesion(@RequestBody UserImpl user){
         return service.verify(user);
     }

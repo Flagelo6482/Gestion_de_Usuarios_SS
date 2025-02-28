@@ -43,9 +43,10 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())    // Desactivar CSRF para APIs
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**").permitAll()  // Archivos públicos
+                        .requestMatchers("/public/**", "/", "/login", "/dashboard").permitAll()  // Archivos públicos
                         .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated())   // Todas las otras rutas requieren autenticación
+                        .requestMatchers("/admin/**").authenticated()) // Rutas privadas
+//                        .anyRequest().authenticated())   // Todas las otras rutas requieren autenticación
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider()) // Usar el proveedor de autenticación
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Filtrar JWT antes de validar credenciales
