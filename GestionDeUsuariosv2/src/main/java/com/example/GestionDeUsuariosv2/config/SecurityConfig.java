@@ -19,6 +19,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
@@ -41,15 +43,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())    // Desactivar CSRF para APIs
+                .csrf(csrf -> csrf.disable()) // Desactivar CSRF para simplificar
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**", "/", "/login", "/dashboard").permitAll()  // Archivos públicos
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/admin/**").authenticated()) // Rutas privadas
-//                        .anyRequest().authenticated())   // Todas las otras rutas requieren autenticación
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider()) // Usar el proveedor de autenticación
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // Filtrar JWT antes de validar credenciales
+                        .requestMatchers("/public/**").permitAll() // Rutas públicas
+                        .requestMatchers("/private/**").authenticated() // Rutas privadas
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginPage("/public/login") // Página de login personalizada
+                        .defaultSuccessUrl("/private/dashboard") // Redirigir al dashboard después del login
+                        .failureUrl("/public/login?error") // Redirigir al login con un mensaje de error si falla
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutUrl("/logout") // Ruta para cerrar sesión
+                        .logoutSuccessUrl("/public/login") // Redirigir al login después de cerrar sesión
+                        .invalidateHttpSession(true) // Invalidar la sesión
+                        .deleteCookies("JSESSIONID") // Eliminar la cookie de sesión
+                        .permitAll())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // Usar sesiones
                 .build();
     }
 

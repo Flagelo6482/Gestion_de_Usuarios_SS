@@ -2,10 +2,14 @@ package com.example.GestionDeUsuariosv2.config;
 
 import com.example.GestionDeUsuariosv2.service.JWTService;
 import com.example.GestionDeUsuariosv2.service.UserDetailsServiceImpl;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 /*
 * Encargado de FILTRAR un token JWT, donde interceptaremos las solicitudes entrantes para extraer
@@ -24,6 +30,8 @@ import java.io.IOException;
 * */
 @Service
 public class JwtFilter extends OncePerRequestFilter {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
 
     //Inyectamos al servicio donde tenemos los metodos para validar los datos de un token JWT
     @Autowired
@@ -36,51 +44,71 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
-    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        // Ignorar la verificación del token en la ruta de login
-        if (request.getServletPath().equals("/auth/login")) {
-            filterChain.doFilter(request, response);
+        // Ignorar la verificación del token en rutas públicas
+        List<String> publicPaths = Arrays.asList("/", "/login", "/register", "/public/**");
+
+        // Verificamos si la ruta actual es pública
+        String path = request.getServletPath();
+        if (publicPaths.stream().anyMatch(path::startsWith)) {
+            filterChain.doFilter(request, response); // Ignoramos la verificación del token
             return;
         }
 
-        //Extraemos el header Authorization
-        final String autHeader = request.getHeader("Authorization");
+        // Extraer el token de la cookie
         String token = null;
-        String username = null;
-
-        //Verificamos si el header se encuentra y contiene el prefijo "Bearer "
-        if (autHeader != null && autHeader.startsWith("Bearer ")) {
-            token = autHeader.substring(7); //Cortamos 7 espacios que son "Bearer " para tener solamente el token JWT
-            try {
-                username = service.extractUserName(token);  //Extraemos el usuario del token
-            } catch (Exception e){
-                logger.error("Error al extraer el username del token :"+e.getMessage());
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido o mal formado");
-                return; // Detiene la ejecución del filtro para evitar continuar con la solicitud
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("jwtToken")) {
+                    token = cookie.getValue();
+                    break;
+                }
             }
         }
 
-        //Si se obtuvo el username y el contexto aun no tiene autenticación(si es la primera vez que se autentica el usuario)
+        logger.info("Token extraído de la cookie: " + token); // Usa el logger
+
+        // Si no hay token, redirigir al login
+        if (token == null) {
+            logger.warn("No se encontró el token en la cookie"); // Usa el logger
+            response.sendRedirect("/public/login");
+            return;
+        }
+
+        // Validar el token
+        String username = null;
+        try {
+            username = service.extractUserName(token); // Extraer el nombre de usuario del token
+            logger.info("Usuario extraído del token: " + username);
+        } catch (ExpiredJwtException e) {
+            logger.error("Token expirado para el usuario: " + e.getClaims().getSubject());
+            response.sendRedirect("/public/login"); // Redirigir al login si el token expiró
+            return;
+        } catch (Exception e) {
+            logger.error("Error al extraer el username del token: " + e.getMessage());
+            response.sendRedirect("/public/login"); // Redirigir al login si hay un error
+            return;
+        }
+
+        // Si se obtuvo el username y el contexto aún no tiene autenticación
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-            if (service.isTokenExpired(token)) {
-                logger.error("Token expirado para el usuario: "+username);
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado. Por favor inicie sesión nuevamente.");
-                return; // Detenemos la ejecución
-            }
-
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);  //Buscamos al usuario en la base de datos
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (service.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                logger.info("Autenticación establecida para el usuario: " + username);
+            } else {
+                logger.warn("Token no válido para el usuario: " + username);
+                response.sendRedirect("/public/login"); // Redirigir al login si el token no es válido
+                return;
             }
         }
 
-        //Continuamos con la cadena de filtros
+        // Continuar con la cadena de filtros
         filterChain.doFilter(request, response);
     }
 }

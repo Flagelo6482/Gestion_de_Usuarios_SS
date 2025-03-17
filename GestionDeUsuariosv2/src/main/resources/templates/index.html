@@ -1,41 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Pagina publica</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
-        a {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        a:hover {
-            background-color: #0056b3;
-        }
-    </style>
-    <script>
-        // Si el usuario ya tiene sesión iniciada, redirigirlo a la página privada
-        window.onload = function () {
-            if (localStorage.getItem("token")) {
-                window.location.href = "/dashboard";
-            }
-        };
-    </script>
 </head>
 <body>
-
-    <h2>Estas en una página pública!!</h2>
-
-    <a href="/dashboard">Ir a la página privada</a>
-    <a href="/register">Crear una cuenta!</a>
+    <header>
+        <h1>Bienvenido a Mi Aplicación</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Opciones</h2>
+            <div>
+                <a th:href="@{/public/login}">Iniciar Sesión</a> <!-- Enlace a la página de login -->
+            </div>
+            <div>
+                <a th:href="@{/public/register}">Registrarse</a> <!-- Enlace a la página de registro -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Mi Aplicación</p>
+    </footer>
 </body>
 </html>
